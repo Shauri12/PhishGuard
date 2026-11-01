@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>PhishGuard Warning</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0D1117; --warn: #F59E0B; --danger: #EF4444;
+      --text: #F1F5F9; --text2: #94A3B8; --glass: rgba(255,255,255,0.04);
+    }
+    body {
+      min-height: 100vh; background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text); overflow: hidden;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 600px 400px at 50% 0%, rgba(239,68,68,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 300px at 50% 100%, rgba(245,158,11,0.10) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .card {
+      width: 560px; max-width: 95vw;
+      background: rgba(15,23,42,0.85);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 20px;
+      padding: 48px 40px;
+      text-align: center;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 60px rgba(239,68,68,0.15), 0 20px 60px rgba(0,0,0,0.5);
+      animation: float-in 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes float-in {
+      from { opacity:0; transform:scale(0.85) translateY(20px); }
+      to   { opacity:1; transform:scale(1) translateY(0); }
+    }
+    .icon-wrap {
+      width: 88px; height: 88px; margin: 0 auto 24px;
+      background: rgba(239,68,68,0.12);
+      border: 2px solid rgba(239,68,68,0.35);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 42px;
+      animation: pulse-ring 2s ease-in-out infinite;
+    }
+    @keyframes pulse-ring {
+      0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+      50%      { box-shadow: 0 0 0 14px rgba(239,68,68,0); }
+    }
+    h1 {
+      font-size: 26px; font-weight: 800;
+      color: #F87171;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+    .subtitle { font-size: 15px; color: var(--text2); margin-bottom: 28px; line-height: 1.6; }
+    .prob-section { margin-bottom: 28px; }
+    .prob-label {
+      display: flex; justify-content: space-between;
+      font-size: 13px; color: var(--text2); margin-bottom: 8px;
+    }
+    .prob-track {
+      height: 8px; border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      overflow: hidden;
+    }
+    .prob-fill {
+      height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, #F59E0B, #EF4444);
+      transition: width 1s cubic-bezier(0.4,0,0.2,1);
+    }
+    .url-display {
+      background: rgba(239,68,68,0.07);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 12px; color: #FCA5A5;
+      word-break: break-all;
+      margin-bottom: 28px;
+      font-family: monospace;
+    }
+    .actions { display: flex; flex-direction: column; gap: 10px; }
+    .btn-back {
+      padding: 14px;
+      background: linear-gradient(135deg, #EF4444, #DC2626);
+      color: #fff; border: none;
+      border-radius: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn-back:hover { opacity: 0.88; }
+    .btn-proceed {
+      padding: 10px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text2);
+      border-radius: 10px; font-size: 13px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-proceed:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+    .disclaimer {
+      margin-top: 20px; font-size: 11px; color: rgba(148,163,184,0.5);
+    }
+    .powered { margin-top: 16px; font-size: 11px; color: rgba(148,163,184,0.4); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon-wrap">🚨</div>
+    <h1>Phishing Site Detected!</h1>
+    <p class="subtitle">
+      PhishGuard's AI model has flagged this URL as a <strong style="color:#EF4444">high-risk phishing site</strong>.
+      Visiting this page could put your personal data and credentials at risk.
+    </p>
+
+    <div class="prob-section">
+      <div class="prob-label">
+        <span>Phishing Probability</span>
+        <span id="prob-pct" style="color:#F87171;font-weight:600">—</span>
+      </div>
+      <div class="prob-track">
+        <div class="prob-fill" id="prob-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="url-display" id="danger-url">Loading…</div>
+
+    <div class="actions">
+      <button class="btn-back" id="btn-back">← Take Me Back to Safety</button>
+      <button class="btn-proceed" id="btn-proceed">I understand the risks – proceed anyway</button>
+    </div>
+
+    <p class="disclaimer">
+      This warning is generated by AI and may not be 100% accurate. Exercise caution.
+    </p>
+    <p class="powered">Powered by PhishGuard AI · XGBoost + SHAP</p>
+  </div>
+
+  <script src="warning.js"></script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhishGuard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z"
+                fill="url(#shieldGrad)" stroke="none"/>
+          <defs>
+            <linearGradient id="shieldGrad" x1="3" y1="2" x2="21" y2="23" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#6366F1"/>
+              <stop offset="100%" stop-color="#8B5CF6"/>
+            </linearGradient>
+          </defs>
+          <path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">PhishGuard</span>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="btn-reanalyze" title="Re-analyze this page">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="btn-settings" title="Settings">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Loading State ── -->
+  <div id="state-loading" class="state">
+    <div class="spinner"></div>
+    <p class="state-label">Analyzing URL…</p>
+  </div>
+
+  <!-- ── Error State ── -->
+  <div id="state-error" class="state hidden">
+    <div class="error-icon">⚡</div>
+    <p class="state-label">Backend offline</p>
+    <p class="state-sub">Make sure the PhishGuard server is running on port 8000.</p>
+    <button class="btn-secondary" id="btn-retry">Retry</button>
+  </div>
+
+  <!-- ── Main Result ── -->
+  <div id="state-result" class="hidden">
+
+    <!-- Risk Gauge -->
+    <div class="gauge-section">
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gaugeGradSafe" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#00C896"/>
+              <stop offset="100%" stop-color="#34D399"/>
+            </linearGradient>
+            <linearGradient id="gaugeGradWarn" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#F59E0B"/>
+              <stop offset="100%" stop-color="#FCD34D"/>
+            </linearGradient>
+            <linearGradient id="gaugeGradDanger" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#EF4444"/>
+              <stop offset="100%" stop-color="#F87171"/>
+            </linearGradient>
+          </defs>
+          <!-- Track -->
+          <path d="M 15 105 A 85 85 0 0 1 185 105" fill="none" stroke="#1E293B" stroke-width="14" stroke-linecap="round"/>
+          <!-- Fill arc (animated via JS) -->
+          <path id="gauge-arc" d="M 15 105 A 85 85 0 0 1 185 105" fill="none" stroke="url(#gaugeGradSafe)"
+                stroke-width="14" stroke-linecap="round" stroke-dasharray="267" stroke-dashoffset="267"/>
+          <!-- Centre label -->
+          <text id="gauge-pct" x="100" y="90" text-anchor="middle" font-size="30" font-weight="700" fill="#F1F5F9" font-family="Inter,sans-serif">0%</text>
+          <text x="100" y="108" text-anchor="middle" font-size="10" fill="#64748B" font-family="Inter,sans-serif">PHISHING RISK</text>
+        </svg>
+      </div>
+      <!-- Risk badge -->
+      <div id="risk-badge" class="risk-badge risk-safe">SAFE</div>
+    </div>
+
+    <!-- URL display -->
+    <div class="url-bar">
+      <span class="url-icon">🔗</span>
+      <span id="display-url" class="url-text" title=""></span>
+    </div>
+
+    <!-- Metrics row -->
+    <div class="metrics-row">
+      <div class="metric">
+        <div id="metric-confidence" class="metric-value">—</div>
+        <div class="metric-label">Confidence</div>
+      </div>
+      <div class="metric">
+        <div id="metric-model" class="metric-value">XGBoost</div>
+        <div class="metric-label">Model</div>
+      </div>
+      <div class="metric">
+        <div id="metric-cached" class="metric-value">—</div>
+        <div class="metric-label">Source</div>
+      </div>
+    </div>
+
+    <!-- ── SHAP Explainability ── -->
+    <div class="section">
+      <button class="section-toggle" id="toggle-shap">
+        <span>🔍 Why this result?</span>
+        <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div id="shap-panel" class="panel hidden">
+        <div id="shap-list" class="shap-list"></div>
+      </div>
+    </div>
+
+    <!-- ── Feedback ── -->
+    <div class="section">
+      <button class="section-toggle" id="toggle-feedback">
+        <span>💬 Report / Feedback</span>
+        <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div id="feedback-panel" class="panel hidden">
+        <p class="panel-hint">Is this result incorrect? Let us know:</p>
+        <div class="feedback-btns">
+          <button class="feedback-btn" id="fb-safe" data-label="safe">✅ It's Safe</button>
+          <button class="feedback-btn" id="fb-phish" data-label="phishing">🎣 It's Phishing</button>
+        </div>
+        <div id="feedback-thanks" class="feedback-thanks hidden">
+          <span>🙏 Thanks for your feedback!</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Settings Panel ── -->
+  <div id="settings-panel" class="settings-overlay hidden">
+    <div class="settings-card">
+      <div class="settings-header">
+        <h3>Settings</h3>
+        <button class="icon-btn" id="close-settings">✕</button>
+      </div>
+      <label class="setting-row">
+        <span>Auto-block high-risk sites</span>
+        <input type="checkbox" id="set-autoblock" />
+        <span class="toggle-track"></span>
+      </label>
+      <label class="setting-row">
+        <span>Desktop notifications</span>
+        <input type="checkbox" id="set-notifs" />
+        <span class="toggle-track"></span>
+      </label>
+      <div class="setting-row col">
+        <span>Warning threshold: <strong id="warn-val">50%</strong></span>
+        <input type="range" id="set-warn-thresh" min="30" max="80" step="5" value="50" />
+      </div>
+      <div class="setting-row col">
+        <span>Block threshold: <strong id="block-val">85%</strong></span>
+        <input type="range" id="set-block-thresh" min="60" max="99" step="1" value="85" />
+      </div>
+      <button class="btn-primary" id="save-settings">Save Settings</button>
+    </div>
+  </div>
+
+  <!-- ── Footer ── -->
+  <footer class="footer">
+    <span>PhishGuard v1.0 · AI-Powered</span>
+    <span id="footer-ts"></span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PhishGuard Settings</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0D1117;--bg2:#161B22;--bg3:#1E2732;--bg4:#232D3B;
+      --accent:#6366F1;--accent2:#8B5CF6;
+      --safe:#10B981;--warn:#F59E0B;--danger:#EF4444;
+      --text:#F1F5F9;--text2:#94A3B8;--text3:#475569;
+      --glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.08);
+      --radius:12px;--radius-sm:8px;
+    }
+    html{min-height:100vh}
+    body{
+      background:var(--bg);color:var(--text);
+      font-family:'Inter',sans-serif;font-size:14px;
+      min-height:100vh;
+    }
+    body::before{
+      content:'';position:fixed;inset:0;pointer-events:none;
+      background:
+        radial-gradient(ellipse 600px 500px at 0% 0%, rgba(99,102,241,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 400px 300px at 100% 100%, rgba(139,92,246,0.06) 0%, transparent 60%);
+    }
+
+    /* Layout */
+    .layout{display:flex;min-height:100vh}
+
+    /* Sidebar */
+    .sidebar{
+      width:240px;flex-shrink:0;
+      background:var(--bg2);
+      border-right:1px solid var(--glass-b);
+      padding:24px 0;
+      position:sticky;top:0;height:100vh;
+    }
+    .sidebar-logo{
+      display:flex;align-items:center;gap:10px;
+      padding:0 20px 24px;
+      border-bottom:1px solid var(--glass-b);
+    }
+    .sidebar-logo-icon{
+      width:36px;height:36px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      border-radius:10px;display:flex;align-items:center;justify-content:center;
+      box-shadow:0 0 16px rgba(99,102,241,0.4);font-size:18px;
+    }
+    .sidebar-logo-text{font-weight:700;font-size:15px;
+      background:linear-gradient(135deg,#E2E8F0,#94A3B8);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+    .nav{padding:16px 12px}
+    .nav-label{font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;padding:8px 8px 6px}
+    .nav-item{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 12px;border-radius:8px;
+      color:var(--text2);font-size:13px;font-weight:500;
+      cursor:pointer;transition:all 0.2s;margin-bottom:2px;
+      border:none;background:none;width:100%;text-align:left;
+    }
+    .nav-item:hover{background:var(--glass);color:var(--text)}
+    .nav-item.active{background:rgba(99,102,241,0.15);color:var(--accent);border:1px solid rgba(99,102,241,0.2)}
+    .nav-item .icon{width:18px;text-align:center;font-size:15px}
+    .nav-item .badge{
+      margin-left:auto;background:var(--danger);color:#fff;
+      font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;
+    }
+
+    /* Main content */
+    .main{flex:1;padding:32px 40px;max-width:800px}
+
+    /* Section */
+    .section{margin-bottom:40px}
+    .section-header{margin-bottom:20px}
+    .section-title{font-size:18px;font-weight:700;letter-spacing:-0.3px}
+    .section-sub{font-size:13px;color:var(--text2);margin-top:4px}
+
+    /* Setting cards */
+    .setting-card{
+      background:var(--bg2);
+      border:1px solid var(--glass-b);
+      border-radius:var(--radius);
+      overflow:hidden;margin-bottom:12px;
+    }
+    .setting-row{
+      display:flex;align-items:center;
+      padding:16px 20px;
+      border-bottom:1px solid var(--glass-b);
+      gap:16px;
+    }
+    .setting-row:last-child{border-bottom:none}
+    .setting-info{flex:1}
+    .setting-name{font-size:13px;font-weight:600;margin-bottom:2px}
+    .setting-desc{font-size:12px;color:var(--text2)}
+
+    /* Toggle */
+    .toggle-wrap{position:relative;width:44px;height:24px;flex-shrink:0}
+    .toggle-wrap input{position:absolute;opacity:0;width:0;height:0}
+    .toggle-track{
+      position:absolute;inset:0;
+      background:var(--bg3);border:1px solid var(--glass-b);
+      border-radius:999px;cursor:pointer;transition:all 0.25s;
+    }
+    .toggle-track::after{
+      content:'';position:absolute;top:2px;left:2px;
+      width:18px;height:18px;border-radius:50%;background:#fff;
+      box-shadow:0 1px 4px rgba(0,0,0,0.4);transition:left 0.25s;
+    }
+    .toggle-wrap input:checked ~ .toggle-track{background:var(--accent);border-color:var(--accent)}
+    .toggle-wrap input:checked ~ .toggle-track::after{left:22px}
+
+    /* Select */
+    .setting-select{
+      background:var(--bg3);border:1px solid var(--glass-b);
+      color:var(--text);border-radius:6px;padding:6px 10px;
+      font-size:12px;cursor:pointer;outline:none;
+    }
+    .setting-select:focus{border-color:var(--accent)}
+
+    /* Slider */
+    .slider-wrap{display:flex;align-items:center;gap:12px;min-width:200px}
+    .slider-wrap input[type=range]{flex:1;accent-color:var(--accent)}
+    .slider-val{font-size:13px;font-weight:700;color:var(--accent);min-width:40px;text-align:right}
+
+    /* List editor */
+    .list-editor{padding:16px 20px}
+    .list-textarea{
+      width:100%;height:100px;
+      background:var(--bg3);border:1px solid var(--glass-b);
+      color:var(--text);border-radius:8px;
+      padding:10px 12px;font-size:12px;font-family:monospace;
+      resize:vertical;outline:none;
+      transition:border-color 0.2s;
+    }
+    .list-textarea:focus{border-color:var(--accent)}
+    .list-hint{font-size:11px;color:var(--text3);margin-top:6px}
+
+    /* History table */
+    .history-table{width:100%;border-collapse:collapse}
+    .history-table th{
+      text-align:left;font-size:10px;letter-spacing:1px;
+      text-transform:uppercase;color:var(--text3);
+      padding:10px 14px;border-bottom:1px solid var(--glass-b);
+    }
+    .history-table td{
+      padding:10px 14px;font-size:12px;
+      border-bottom:1px solid rgba(255,255,255,0.03);
+    }
+    .history-table tr:hover td{background:var(--glass)}
+    .risk-chip{
+      padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;
+    }
+    .risk-chip.safe{background:rgba(16,185,129,0.15);color:#34D399}
+    .risk-chip.warning{background:rgba(245,158,11,0.15);color:#FCD34D}
+    .risk-chip.phishing{background:rgba(239,68,68,0.15);color:#F87171}
+    .url-cell{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)}
+
+    /* Buttons */
+    .btn-primary{
+      padding:9px 18px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#fff;border:none;border-radius:8px;
+      font-size:13px;font-weight:600;cursor:pointer;transition:opacity 0.2s;
+    }
+    .btn-primary:hover{opacity:0.85}
+    .btn-outline{
+      padding:8px 16px;
+      background:transparent;border:1px solid var(--glass-b);
+      color:var(--text2);border-radius:8px;
+      font-size:12px;cursor:pointer;transition:all 0.2s;
+    }
+    .btn-outline:hover{border-color:rgba(255,255,255,0.2);color:var(--text)}
+    .btn-danger-sm{
+      padding:8px 14px;
+      background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);
+      color:#F87171;border-radius:8px;font-size:12px;cursor:pointer;transition:all 0.2s;
+    }
+    .btn-danger-sm:hover{background:rgba(239,68,68,0.2)}
+    .btn-row{display:flex;gap:8px;margin-top:12px}
+
+    /* Stats cards */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+    .stat-card{
+      background:var(--bg2);border:1px solid var(--glass-b);
+      border-radius:var(--radius);padding:20px;text-align:center;
+    }
+    .stat-num{font-size:28px;font-weight:800;margin-bottom:4px}
+    .stat-num.safe{color:var(--safe)}
+    .stat-num.warn{color:var(--warn)}
+    .stat-num.danger{color:var(--danger)}
+    .stat-num.accent{color:var(--accent)}
+    .stat-label{font-size:11px;color:var(--text3)}
+
+    /* About */
+    .about-card{
+      background:var(--bg2);border:1px solid var(--glass-b);
+      border-radius:var(--radius);padding:28px;
+      display:flex;flex-direction:column;gap:16px;
+    }
+    .about-row{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+    .about-key{color:var(--text2)}
+    .about-val{color:var(--text);font-weight:500}
+    .version-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.25);
+      color:var(--accent);padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;
+    }
+
+    /* Page visibility */
+    .page{display:none}
+    .page.active{display:block}
+
+    /* Save toast */
+    .toast{
+      position:fixed;bottom:24px;right:24px;
+      background:var(--safe);color:#fff;
+      padding:10px 20px;border-radius:8px;
+      font-size:13px;font-weight:600;
+      transform:translateY(60px);opacity:0;
+      transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      z-index:999;
+    }
+    .toast.show{transform:translateY(0);opacity:1}
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🛡️</div>
+      <span class="sidebar-logo-text">PhishGuard</span>
+    </div>
+    <div class="nav">
+      <div class="nav-label">Menu</div>
+      <button class="nav-item active" onclick="showPage('protection')" id="nav-protection">
+        <span class="icon">🛡️</span> Protection
+      </button>
+      <button class="nav-item" onclick="showPage('allowlist')" id="nav-allowlist">
+        <span class="icon">✅</span> Allowlist
+      </button>
+      <button class="nav-item" onclick="showPage('blocklist')" id="nav-blocklist">
+        <span class="icon">🚫</span> Blocklist
+      </button>
+      <button class="nav-item" data-tab="history" id="nav-history">
+        <span class="icon">📋</span> Scan History
+        <span class="badge" id="history-count">0</span>
+      </button>
+      <div class="nav-label" style="margin-top:12px">System</div>
+      <button class="nav-item" onclick="showPage('stats')" id="nav-stats">
+        <span class="icon">📊</span> Statistics
+      </button>
+      <button class="nav-item" data-tab="about" id="nav-about">
+        <span class="icon">ℹ️</span> About
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ── Protection Settings ── -->
+    <div id="page-protection" class="page active">
+      <div class="section-header">
+        <h2 class="section-title">🛡️ Protection Settings</h2>
+        <p class="section-sub">Configure how PhishGuard protects you while browsing</p>
+      </div>
+
+      <div class="setting-card">
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Auto-block Phishing Sites</div>
+            <div class="setting-desc">Automatically redirect to blocked page for high-confidence phishing sites</div>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="set-autoblock" checked/>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Show Warning Banners</div>
+            <div class="setting-desc">Inject a warning strip on medium-risk pages without blocking</div>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="set-banners" checked/>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Desktop Notifications</div>
+            <div class="setting-desc">Show system notification when a phishing site is detected</div>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="set-notifs" checked/>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Real-time Scanning</div>
+            <div class="setting-desc">Scan every URL as you navigate (disable to reduce API calls)</div>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="set-realtime" checked/>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-header" style="margin-top:28px">
+        <h3 class="section-title" style="font-size:15px">Risk Thresholds</h3>
+        <p class="section-sub">Set the probability thresholds for each risk level</p>
+      </div>
+
+      <div class="setting-card">
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Warning Threshold</div>
+            <div class="setting-desc">Show yellow warning badge above this probability</div>
+          </div>
+          <div class="slider-wrap">
+            <input type="range" id="thresh-warn" min="20" max="75" value="50" step="5"
+                   oninput="document.getElementById('thresh-warn-val').textContent=this.value+'%'"/>
+            <span class="slider-val" id="thresh-warn-val">50%</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Block Threshold</div>
+            <div class="setting-desc">Redirect to blocked page above this probability</div>
+          </div>
+          <div class="slider-wrap">
+            <input type="range" id="thresh-block" min="60" max="99" value="85" step="1"
+                   oninput="document.getElementById('thresh-block-val').textContent=this.value+'%'"/>
+            <span class="slider-val" id="thresh-block-val">85%</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Cache Duration</div>
+            <div class="setting-desc">How long to cache URL results before re-scanning</div>
+          </div>
+          <select class="setting-select" id="set-cache">
+            <option value="1">1 minute</option>
+            <option value="5" selected>5 minutes</option>
+            <option value="15">15 minutes</option>
+            <option value="60">1 hour</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" id="btn-save-settings">Save Settings</button>
+        <button class="btn-outline" id="btn-reset-defaults">Reset to Defaults</button>
+      </div>
+    </div>
+
+    <!-- ── Allowlist ── -->
+    <div id="page-allowlist" class="page">
+      <div class="section-header">
+        <h2 class="section-title">✅ Allowlist</h2>
+        <p class="section-sub">Domains always trusted — PhishGuard will never block these</p>
+      </div>
+      <div class="setting-card">
+        <div class="list-editor">
+          <textarea class="list-textarea" id="allowlist-input" placeholder="Enter one domain per line&#10;e.g. google.com&#10;github.com"></textarea>
+          <div class="list-hint">One domain per line. Subdomains are automatically included.</div>
+          <div class="btn-row">
+            <button class="btn-primary" id="btn-save-allow">Save Allowlist</button>
+            <button class="btn-outline" id="btn-clear-allow">Clear All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Blocklist ── -->
+    <div id="page-blocklist" class="page">
+      <div class="section-header">
+        <h2 class="section-title">🚫 Blocklist</h2>
+        <p class="section-sub">Domains always blocked regardless of AI model score</p>
+      </div>
+      <div class="setting-card">
+        <div class="list-editor">
+          <textarea class="list-textarea" id="blocklist-input" placeholder="Enter one domain per line&#10;e.g. evil-phish.tk&#10;fake-paypal.xyz"></textarea>
+          <div class="list-hint">One domain per line. These are blocked instantly without API call.</div>
+          <div class="btn-row">
+            <button class="btn-primary" id="btn-save-block">Save Blocklist</button>
+            <button class="btn-outline" id="btn-clear-block">Clear All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── History ── -->
+    <div id="page-history" class="page">
+      <div class="section-header" style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div>
+          <h2 class="section-title">📋 Scan History</h2>
+          <p class="section-sub">Recent URLs analyzed by PhishGuard</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-outline" id="btn-export-history">Export CSV</button>
+          <button class="btn-danger-sm" id="btn-clear-history">Clear History</button>
+        </div>
+      </div>
+      <div class="setting-card" style="overflow:hidden">
+        <table class="history-table" id="history-table">
+          <thead>
+            <tr>
+              <th>URL</th>
+              <th>Risk</th>
+              <th>Score</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody">
+            <tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text3)">No scan history yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Statistics ── -->
+    <div id="page-stats" class="page">
+      <div class="section-header">
+        <h2 class="section-title">📊 Statistics</h2>
+        <p class="section-sub">Your PhishGuard protection summary</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num accent" id="stat-total">0</div>
+          <div class="stat-label">Total Scans</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num safe" id="stat-safe">0</div>
+          <div class="stat-label">Safe Sites</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num warn" id="stat-warn">0</div>
+          <div class="stat-label">Warnings</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num danger" id="stat-blocked">0</div>
+          <div class="stat-label">Blocked</div>
+        </div>
+      </div>
+      <div class="setting-card" style="padding:20px">
+        <p style="font-size:13px;color:var(--text2)">
+          Statistics are calculated from your local scan history.
+          Backend server stats are available at
+          <a href="http://127.0.0.1:8000/api/v1/stats" target="_blank"
+             style="color:var(--accent)">http://127.0.0.1:8000/api/v1/stats</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- ── About ── -->
+    <div id="page-about" class="page">
+      <div class="section-header">
+        <h2 class="section-title">ℹ️ About PhishGuard</h2>
+        <p class="section-sub">AI-powered phishing detection built for your safety</p>
+      </div>
+      <div class="about-card">
+        <div class="about-row">
+          <span class="about-key">Version</span>
+          <span class="version-badge">🛡️ PhishGuard v1.0.0</span>
+        </div>
+        <div class="about-row">
+          <span class="about-key">ML Model</span>
+          <span class="about-val">XGBoost Classifier</span>
+        </div>
+        <div class="about-row">
+          <span class="about-key">Explainability</span>
+          <span class="about-val">SHAP TreeExplainer</span>
+        </div>
+        <div class="about-row">
+          <span class="about-key">Training Accuracy</span>
+          <span class="about-val" style="color:var(--safe)">95.41%</span>
+        </div>
+        <div class="about-row">
+          <span class="about-key">Features Used</span>
+          <span class="about-val">25 URL Signals</span>
+        </div>
+        <div class="about-row">
+          <span class="about-key">Backend</span>
+          <span class="about-val">FastAPI · Python 3.x</span>
+        </div>
+        <div class="about-row">
+          <span class="about-key">Extension API</span>
+          <span class="about-val">Chrome Manifest V3</span>
+        </div>
+        <div class="about-row">
+          <span class="about-key">Backend Status</span>
+          <span class="about-val" id="backend-status">Checking…</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">Settings saved!</div>
+
+<script src="settings.js"></script>
+</body>
+</html>
