@@ -75,3 +75,9 @@ app.include_router(history_router)
 @app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse(url="/docs")
+
+
+@app.get("/health", include_in_schema=False)
+async def root_health():
+    from app.api.health import health_check
+    return await health_check()

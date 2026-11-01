@@ -26,10 +26,17 @@ FEEDBACK_LOGS: List[Dict[str, Any]] = []
 )
 async def submit_feedback(req: FeedbackRequest):
     report_id = str(uuid.uuid4())[:8]
+    reported_as = req.reported_as
+    if req.correct_label is not None:
+        reported_as = "false_positive" if req.correct_label == 0 else "false_negative"
+
     entry = {
         "report_id": report_id,
         "url": req.url,
-        "reported_as": req.reported_as,
+        "reported_as": reported_as,
+        "predicted_label": req.predicted_label,
+        "correct_label": req.correct_label,
+        "probability": req.probability,
         "user_comment": req.user_comment,
         "timestamp": datetime.utcnow().isoformat() + "Z"
     }

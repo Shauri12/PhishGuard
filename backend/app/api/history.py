@@ -103,3 +103,19 @@ async def add_blocklist(req: ListEntryRequest):
         BLOCKLIST.append(domain)
     return {"success": True, "domain": domain, "blocklist_size": len(BLOCKLIST)}
 
+
+@router.delete("/allowlist/{domain}", summary="Remove Domain from Allowlist")
+async def remove_allowlist(domain: str):
+    cleaned = domain.strip().lower().lstrip("https://").lstrip("http://").split("/")[0]
+    if cleaned in ALLOWLIST:
+        ALLOWLIST.remove(cleaned)
+    return {"success": True, "domain": cleaned, "allowlist": ALLOWLIST}
+
+
+@router.delete("/blocklist/{domain}", summary="Remove Domain from Blocklist")
+async def remove_blocklist(domain: str):
+    cleaned = domain.strip().lower().lstrip("https://").lstrip("http://").split("/")[0]
+    if cleaned in BLOCKLIST:
+        BLOCKLIST.remove(cleaned)
+    return {"success": True, "domain": cleaned, "blocklist": BLOCKLIST}
+

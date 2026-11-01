@@ -8,12 +8,19 @@ import { MetricCard, RiskBadge, Spinner } from '../components/Shared';
 
 const COLORS = { safe: '#10B981', warning: '#F59E0B', phishing: '#EF4444' };
 
+function normalizeRisk(level) {
+  const l = (level || 'safe').toLowerCase();
+  if (['phishing', 'blocked', 'dangerous'].includes(l)) return 'phishing';
+  if (['warning', 'suspicious', 'warn'].includes(l)) return 'warning';
+  return 'safe';
+}
+
 function buildTrend(history) {
   const buckets = {};
   history.forEach(h => {
     const day = new Date(h.timestamp || h.ts || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     if (!buckets[day]) buckets[day] = { day, safe: 0, warning: 0, phishing: 0 };
-    const lvl = (h.risk_level || 'safe').toLowerCase();
+    const lvl = normalizeRisk(h.risk_level);
     if (buckets[day][lvl] !== undefined) buckets[day][lvl]++;
   });
   return Object.values(buckets).slice(-14);
@@ -22,7 +29,7 @@ function buildTrend(history) {
 function buildPie(history) {
   const counts = { safe: 0, warning: 0, phishing: 0 };
   history.forEach(h => {
-    const lvl = (h.risk_level || 'safe').toLowerCase();
+    const lvl = normalizeRisk(h.risk_level);
     if (counts[lvl] !== undefined) counts[lvl]++;
   });
   return Object.entries(counts).map(([name, value]) => ({ name, value }));
@@ -53,9 +60,9 @@ export default function Overview() {
   if (loading) return <Spinner />;
 
   const total    = history.length;
-  const safe     = history.filter(h => (h.risk_level||'').toLowerCase() === 'safe').length;
-  const warned   = history.filter(h => ['warning','suspicious'].includes((h.risk_level||'').toLowerCase())).length;
-  const blocked  = history.filter(h => (h.risk_level||'').toLowerCase() === 'phishing').length;
+  const safe     = history.filter(h => normalizeRisk(h.risk_level) === 'safe').length;
+  const warned   = history.filter(h => normalizeRisk(h.risk_level) === 'warning').length;
+  const blocked  = history.filter(h => normalizeRisk(h.risk_level) === 'phishing').length;
   const avgScore = total ? (history.reduce((s, h) => s + (h.probability || 0), 0) / total * 100).toFixed(1) : 0;
 
   const trend  = buildTrend(history);

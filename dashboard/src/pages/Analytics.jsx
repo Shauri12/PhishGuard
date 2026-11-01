@@ -6,9 +6,19 @@ import {
 import { getHistory } from '../api/client';
 import { Spinner } from '../components/Shared';
 
+function isPhishing(risk) {
+  const r = (risk || '').toLowerCase();
+  return ['phishing', 'blocked', 'dangerous'].includes(r);
+}
+
+function isWarning(risk) {
+  const r = (risk || '').toLowerCase();
+  return ['warning', 'suspicious', 'warn'].includes(r);
+}
+
 function topDomains(history, n = 10) {
   const counts = {};
-  history.filter(h => (h.risk_level||'') === 'phishing').forEach(h => {
+  history.filter(h => isPhishing(h.risk_level)).forEach(h => {
     try {
       const d = new URL(h.url).hostname;
       counts[d] = (counts[d] || 0) + 1;
@@ -35,7 +45,7 @@ function hourlyHeatmap(history) {
     if (!h.timestamp) return;
     const hr = new Date(h.timestamp).getHours();
     buckets[hr].scans++;
-    if ((h.risk_level||'') === 'phishing') buckets[hr].phishing++;
+    if (isPhishing(h.risk_level)) buckets[hr].phishing++;
   });
   return buckets;
 }
@@ -53,9 +63,9 @@ export default function Analytics() {
 
   if (loading) return <Spinner />;
 
-  const phishing = history.filter(h => (h.risk_level||'') === 'phishing');
-  const safe     = history.filter(h => (h.risk_level||'') === 'safe');
-  const warned   = history.filter(h => ['warning','suspicious'].includes(h.risk_level||''));
+  const phishing = history.filter(h => isPhishing(h.risk_level));
+  const safe     = history.filter(h => (h.risk_level||'').toLowerCase() === 'safe');
+  const warned   = history.filter(h => isWarning(h.risk_level));
 
   const total = history.length || 1;
   const detectionRate = ((phishing.length / total) * 100).toFixed(1);

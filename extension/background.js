@@ -76,6 +76,49 @@ async function analyzeUrl(url, tabId) {
     return cached.data;
   }
 
+  // Check local allowlist & blocklist before API
+  const stored = await new Promise(res => chrome.storage.local.get(['allowlist', 'blocklist', 'settings'], res));
+  let hostname = '';
+  try { hostname = new URL(url).hostname.replace(/^www\./, '').toLowerCase(); } catch(e) {}
+
+  const allowlist = stored.allowlist || [];
+  const isAllowlisted = allowlist.some(d => hostname === d || hostname.endsWith('.' + d));
+  if (isAllowlisted) {
+    const safeData = {
+      url: url,
+      probability: 0.0,
+      risk_score: 0,
+      risk_level: 'safe',
+      prediction: 0,
+      verdict: 'SAFE (Allowlist)',
+      is_whitelisted: true,
+      factors: [{ feature: 'custom_allowlist', impact: 'HIGH', direction: 'legitimate', message: 'Domain in your trusted allowlist' }],
+      latency_ms: 0,
+      timestamp: new Date().toISOString()
+    };
+    applyResult(tabId, url, safeData);
+    return safeData;
+  }
+
+  const blocklist = stored.blocklist || [];
+  const isBlocklisted = blocklist.some(d => hostname === d || hostname.endsWith('.' + d));
+  if (isBlocklisted) {
+    const blockData = {
+      url: url,
+      probability: 0.99,
+      risk_score: 99,
+      risk_level: 'phishing',
+      prediction: 1,
+      verdict: 'BLOCKED (Blocklist)',
+      is_whitelisted: false,
+      factors: [{ feature: 'custom_blocklist', impact: 'HIGH', direction: 'phishing', message: 'Domain in your custom blocklist' }],
+      latency_ms: 0,
+      timestamp: new Date().toISOString()
+    };
+    applyResult(tabId, url, blockData);
+    return blockData;
+  }
+
   setBadge(tabId, 'loading');
 
   try {
@@ -132,14 +175,50 @@ function applyResult(tabId, url, data) {
     chrome.storage.local.get(['settings'], function(sData) {
       const s = sData.settings || {};
       const autoBlock = s.autoBlock !== false;
+      const showBanners = s.banners !== false;
+      const notifsEnabled = s.notifications !== false;
+      const warnThreshold = s.threshold_warning || 0.50;
       const blockThreshold = s.threshold_block || 0.85;
 
+      // 1. Phishing / High-Risk Interception
       if (autoBlock && (risk === 'phishing' || data.probability >= blockThreshold)) {
         const factorsParam = data.factors && data.factors.length ? '&reasons=' + encodeURIComponent(JSON.stringify(data.factors)) : '';
         const blockedUrl = chrome.runtime.getURL(
           'pages/blocked.html?url=' + encodeURIComponent(url) + '&prob=' + data.probability.toFixed(3) + factorsParam
         );
         chrome.tabs.update(tabId, { url: blockedUrl });
+
+        // Show desktop notification
+        if (notifsEnabled && chrome.notifications && chrome.notifications.create) {
+          try {
+            chrome.notifications.create({
+              type: 'basic',
+              iconUrl: 'icons/icon48.png',
+              title: '🚨 PhishGuard Threat Blocked',
+              message: 'Blocked high-risk phishing URL: ' + url.slice(0, 50),
+              priority: 2
+            });
+          } catch(e) {}
+        }
+      }
+      // 2. Suspicious / Warning Banner Injection
+      else if (risk === 'warning' || (data.probability >= warnThreshold && data.probability < blockThreshold)) {
+        if (showBanners) {
+          try {
+            chrome.tabs.sendMessage(tabId, { type: 'SHOW_BANNER', risk: 'warning', probability: data.probability });
+          } catch(e) {}
+        }
+        if (notifsEnabled && chrome.notifications && chrome.notifications.create) {
+          try {
+            chrome.notifications.create({
+              type: 'basic',
+              iconUrl: 'icons/icon48.png',
+              title: '⚠️ PhishGuard Warning',
+              message: 'Caution: This site has a ' + Math.round(data.probability * 100) + '% phishing risk score.',
+              priority: 1
+            });
+          } catch(e) {}
+        }
       }
     });
   });

@@ -10,19 +10,19 @@ function FactorBar({ factors }) {
         SHAP Explainability — Top Risk Factors
       </div>
       {factors.slice(0, 7).map((f, i) => {
-        const pct = Math.min(Math.abs(f.shap_value || 0) * 100, 100) || Math.random() * 80 + 10;
-        const dir = f.direction || (f.impact === 'HIGH' ? 'phishing' : 'legitimate');
+        const rawImpact = (f.impact || 'MED').toUpperCase();
+        const pct = rawImpact === 'HIGH' ? 85 : rawImpact === 'MEDIUM' ? 55 : 25;
+        const dir = f.direction || (rawImpact === 'HIGH' ? 'phishing' : 'legitimate');
         return (
           <div key={i} className="factor-row">
             <div className="factor-name" title={f.feature}>
               {dir === 'phishing' ? '🔴' : '🟢'} {(f.feature || '').replace(/_/g, ' ')}
             </div>
             <div className="factor-track">
-              <div className="factor-fill" style={{ width: pct + '%' }} data-dir={dir} />
+              <div className={`factor-fill ${dir}`} style={{ width: pct + '%' }} />
             </div>
-            <div className="factor-pct">{pct.toFixed(0)}%</div>
-            <span className="badge" style={{ fontSize: 10, padding: '2px 7px' }}
-              data-level={f.impact?.toLowerCase()}>
+            <div className="factor-pct">{pct}%</div>
+            <span className="badge" style={{ fontSize: 10, padding: '2px 7px' }}>
               {f.impact || 'MED'}
             </span>
           </div>
@@ -53,26 +53,31 @@ export default function ScanTool() {
     }
   }
 
+  const rawRisk = (result?.risk_level || result?.verdict || 'safe').toLowerCase();
+  const risk = (rawRisk === 'blocked' || rawRisk === 'dangerous') ? 'phishing' : (rawRisk === 'warn' || rawRisk === 'suspicious') ? 'warning' : rawRisk;
+  const rawProb = result?.phishing_probability ?? result?.probability ?? (result?.risk_score != null ? result.risk_score / 100 : 0);
+  const pct = result ? (rawProb * 100).toFixed(1) : '0.0';
+  const factors = result?.explanation || result?.factors || [];
+
   async function sendFeedback(isPhishing) {
     if (!result) return;
     try {
       await submitFeedback({
         url: result.url,
-        predicted_label: result.prediction ?? (result.risk_level === 'phishing' ? 1 : 0),
+        reported_as: isPhishing ? 'false_negative' : 'false_positive',
+        predicted_label: result.prediction ?? (risk === 'phishing' ? 1 : 0),
         correct_label: isPhishing ? 1 : 0,
-        probability: result.probability,
+        probability: rawProb,
       });
       setFbSent(true);
-    } catch {}
+    } catch (err) {
+      setError('Feedback submission failed: ' + (err.message || 'Unknown error'));
+    }
   }
-
-  const risk = result?.risk_level?.toLowerCase() || 'safe';
-  const pct  = result ? (result.probability * 100).toFixed(1) : null;
-  const factors = result?.explanation?.top_reasons || result?.factors || [];
 
   const EXAMPLES = [
     'https://www.google.com',
-    'http://paypal-account-verify.com/login',
+    'http://paypal-security-account-verify.xyz/login.php',
     'https://github.com/openai/openai-python',
     'http://192.168.1.1/phish/steal.php',
   ];
@@ -143,7 +148,7 @@ export default function ScanTool() {
             <div className="card">
               <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>Risk Level</div>
               <div style={{ fontSize: 18, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text)' }}>
-                {result.risk_level}
+                {result.verdict || result.risk_level || (risk.toUpperCase())}
               </div>
             </div>
             <div className="card">
@@ -199,7 +204,7 @@ export default function ScanTool() {
             </div>
           ) : (
             <div style={{ marginTop: 12, fontSize: 12, color: 'var(--safe)' }}>
-              ✅ Thank you! Feedback submitted and will improve the model.
+              ✅ Thank you! Feedback submitted and recorded in active learning queue.
             </div>
           )}
         </div>
@@ -207,4 +212,3 @@ export default function ScanTool() {
     </div>
   );
 }
-

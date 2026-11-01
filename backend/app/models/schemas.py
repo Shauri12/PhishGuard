@@ -36,8 +36,11 @@ class PredictionResponse(BaseModel):
 
 class FeedbackRequest(BaseModel):
     url: str = Field(..., description="URL reported by the user")
-    reported_as: str = Field(..., description="Report category: 'false_positive' (safe site blocked) or 'false_negative' (phish missed)", example="false_positive")
-    user_comment: Optional[str] = Field(None, description="Optional user note or context", example="This is my internal company portal")
+    reported_as: Optional[str] = Field("false_positive", description="Report category: 'false_positive' or 'false_negative'")
+    predicted_label: Optional[int] = Field(None, description="Model prediction: 1 (phishing) or 0 (safe)")
+    correct_label: Optional[int] = Field(None, description="User correction: 1 (phishing) or 0 (safe)")
+    probability: Optional[float] = Field(None, description="Predicted phishing probability")
+    user_comment: Optional[str] = Field(None, description="Optional user note or context")
 
 class FeedbackResponse(BaseModel):
     success: bool = True

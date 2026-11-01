@@ -75,7 +75,6 @@
     .main{flex:1;padding:32px 40px;max-width:800px}
 
     /* Section */
-    .section{margin-bottom:40px}
     .section-header{margin-bottom:20px}
     .section-title{font-size:18px;font-weight:700;letter-spacing:-0.3px}
     .section-sub{font-size:13px;color:var(--text2);margin-top:4px}
@@ -239,13 +238,13 @@
     </div>
     <div class="nav">
       <div class="nav-label">Menu</div>
-      <button class="nav-item active" onclick="showPage('protection')" id="nav-protection">
+      <button class="nav-item active" data-tab="protection" id="nav-protection">
         <span class="icon">🛡️</span> Protection
       </button>
-      <button class="nav-item" onclick="showPage('allowlist')" id="nav-allowlist">
+      <button class="nav-item" data-tab="allowlist" id="nav-allowlist">
         <span class="icon">✅</span> Allowlist
       </button>
-      <button class="nav-item" onclick="showPage('blocklist')" id="nav-blocklist">
+      <button class="nav-item" data-tab="blocklist" id="nav-blocklist">
         <span class="icon">🚫</span> Blocklist
       </button>
       <button class="nav-item" data-tab="history" id="nav-history">
@@ -253,7 +252,7 @@
         <span class="badge" id="history-count">0</span>
       </button>
       <div class="nav-label" style="margin-top:12px">System</div>
-      <button class="nav-item" onclick="showPage('stats')" id="nav-stats">
+      <button class="nav-item" data-tab="stats" id="nav-stats">
         <span class="icon">📊</span> Statistics
       </button>
       <button class="nav-item" data-tab="about" id="nav-about">
@@ -327,8 +326,7 @@
             <div class="setting-desc">Show yellow warning badge above this probability</div>
           </div>
           <div class="slider-wrap">
-            <input type="range" id="thresh-warn" min="20" max="75" value="50" step="5"
-                   oninput="document.getElementById('thresh-warn-val').textContent=this.value+'%'"/>
+            <input type="range" id="thresh-warn" min="20" max="75" value="50" step="5"/>
             <span class="slider-val" id="thresh-warn-val">50%</span>
           </div>
         </div>
@@ -338,8 +336,7 @@
             <div class="setting-desc">Redirect to blocked page above this probability</div>
           </div>
           <div class="slider-wrap">
-            <input type="range" id="thresh-block" min="60" max="99" value="85" step="1"
-                   oninput="document.getElementById('thresh-block-val').textContent=this.value+'%'"/>
+            <input type="range" id="thresh-block" min="60" max="99" value="85" step="1"/>
             <span class="slider-val" id="thresh-block-val">85%</span>
           </div>
         </div>
@@ -483,7 +480,7 @@
         </div>
         <div class="about-row">
           <span class="about-key">Training Accuracy</span>
-          <span class="about-val" style="color:var(--safe)">95.41%</span>
+          <span class="about-val" style="color:var(--safe)">99.96%</span>
         </div>
         <div class="about-row">
           <span class="about-key">Features Used</span>

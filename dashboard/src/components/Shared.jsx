@@ -1,12 +1,15 @@
 export function RiskBadge({ level }) {
   const map = {
-    safe:     { cls: 'safe',     label: 'SAFE'     },
-    warning:  { cls: 'warning',  label: 'WARN'     },
-    suspicious:{ cls:'warning',  label: 'SUSPICIOUS'},
-    phishing: { cls: 'phishing', label: 'PHISHING' },
-    error:    { cls: 'error',    label: 'ERROR'    },
+    safe:       { cls: 'safe',     label: 'SAFE'     },
+    allow:      { cls: 'safe',     label: 'SAFE'     },
+    warning:    { cls: 'warning',  label: 'WARN'     },
+    suspicious: { cls: 'warning',  label: 'SUSPICIOUS'},
+    phishing:   { cls: 'phishing', label: 'PHISHING' },
+    blocked:    { cls: 'phishing', label: 'BLOCKED'  },
+    dangerous:  { cls: 'phishing', label: 'DANGEROUS'},
+    error:      { cls: 'error',    label: 'ERROR'    },
   };
-  const { cls, label } = map[level?.toLowerCase()] || { cls: 'error', label: level || 'UNKNOWN' };
+  const { cls, label } = map[level?.toLowerCase()] || { cls: 'error', label: level?.toUpperCase() || 'UNKNOWN' };
   return <span className={`badge ${cls}`}>{label}</span>;
 }
 

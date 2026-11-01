@@ -143,7 +143,8 @@ class PredictorService:
         # ── Record to scan history ─────────────────────────────
         try:
             from app.api.history import record_scan
-            risk_level = category.lower()  # "safe", "suspicious", "blocked"
+            risk_map = {"BLOCKED": "phishing", "SUSPICIOUS": "warning", "SAFE": "safe"}
+            risk_level = risk_map.get(category, category.lower())
             record_scan(url, risk_level, round(proba, 4), verdict, latency)
         except Exception:
             pass  # Never let logging break inference
