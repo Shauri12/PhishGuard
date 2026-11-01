@@ -14,9 +14,7 @@
 6. [Running Each Component](#running-each-component)
 7. [API Reference](#api-reference)
 8. [Chrome Extension Installation](#chrome-extension-installation)
-9. [Phase Completion Summary](#phase-completion-summary)
-10. [Model Performance](#model-performance)
-11. [Security Features](#security-features)
+9. [Security Features](#security-features)
 
 ---
 
@@ -302,32 +300,6 @@ curl -X POST http://127.0.0.1:8000/api/v1/predict \
 | ✅ SAFE | < 50% | Green badge, no interruption |
 | ⚠️ WARNING | 50%–84% | Warning interstitial, user can proceed |
 | 🛑 PHISHING | ≥ 85% | Full redirect to blocked.html with SHAP breakdown |
-
----
-
-## Phase Completion Summary
-
-| Phase | Deliverable | Status |
-|---|---|---|
-| 1 — ML Foundation | XGBoost + SHAP, >99.9% ROC-AUC | ✅ Complete |
-| 2 — FastAPI Backend | REST API, whitelist, schemas | ✅ Complete |
-| 3 — Chrome Extension | MV3 service worker, popup, content.js | ✅ Complete |
-| 4 — Warning & Block Pages | blocked.html, warning.html, settings.html | ✅ Complete |
-| 5 — React Dashboard | 6-page SOC panel, charts, live scan tool | ✅ Complete |
-| 6 — Integration & Polish | Rate limiting, security headers, history API, E2E tests, README | ✅ Complete |
-
----
-
-## Model Performance
-
-| Metric | Value |
-|---|---|
-| Accuracy | 99.96% |
-| ROC-AUC | 99.9998% |
-| False Positive Rate | 0.06% |
-| Avg API Latency | < 40ms |
-| Feature Count | 25 lexical/structural URL features |
-| Dataset | PhiUSIIL Phishing URL Dataset |
 
 ---
 
